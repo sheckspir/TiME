@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:paddingBottom="@dimen/spacing_xxsmall"
+              android:paddingLeft="@dimen/spacing_normal"
+              android:paddingRight="@dimen/spacing_normal"
+              android:paddingTop="@dimen/spacing_xxsmall"
+              android:background="?android:selectableItemBackground"
+              android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/plan_complete_check"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginEnd="@dimen/spacing_normal"
+        android:layout_marginRight="@dimen/spacing_normal"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/plan_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="2"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+
+            <FrameLayout
+                android:id="@+id/urgent_important_layout"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_min_height"
+                android:layout_weight="1"
+                android:background="?android:attr/selectableItemBackground">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/button_plan_type_height"
+                    android:layout_gravity="center"
+                    android:background="@color/urgent_important"/>
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/not_urgent_important_layout"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_min_height"
+                android:layout_weight="1"
+                android:background="?android:attr/selectableItemBackground">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/button_plan_type_height"
+                    android:layout_gravity="center"
+                    android:background="@color/not_urgent_important"/>
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/urgent_not_important_layout"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_min_height"
+                android:layout_weight="1"
+                android:background="?android:attr/selectableItemBackground">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/button_plan_type_height"
+                    android:layout_gravity="center"
+                    android:background="@color/urgent_not_important"/>
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/not_urgent_not_important_layout"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_min_height"
+                android:layout_weight="1"
+                android:background="?android:attr/selectableItemBackground">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/button_plan_type_height"
+                    android:layout_gravity="center"
+                    android:background="@color/not_urgent_not_important"/>
+
+            </FrameLayout>
+
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

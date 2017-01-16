@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="time_primary">#3F51B5</color>
+    <color name="time_primary_dark">#303F9F</color>
+    <color name="time_accent">#FF4081</color>
+
+    <color name="urgent_important">#FF0000</color>
+    <color name="not_urgent_important">#47A76A</color>
+    <color name="urgent_not_important">#FFFF00</color>
+    <color name="not_urgent_not_important">#0000FF</color>
+</resources>
