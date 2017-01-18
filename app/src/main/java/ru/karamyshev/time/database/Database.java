@@ -2,7 +2,9 @@ package ru.karamyshev.time.database;
 
 
 import android.content.Context;
+import android.util.Log;
 
+import java.io.FileNotFoundException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -22,8 +24,19 @@ public class Database {
     private static RealmConfiguration configuration;
 
     public static void init(Context context) {
-        Realm.init(context);
-        configuration = new RealmConfiguration.Builder().build();
+        try {
+            Realm.init(context);
+        } catch (RuntimeException e) {
+            configuration = new RealmConfiguration.Builder().build();
+            try {
+                Realm.migrateRealm(configuration);
+            } catch (FileNotFoundException e1) {
+                e.printStackTrace();
+            }
+        }
+        if (configuration == null) {
+            configuration = new RealmConfiguration.Builder().build();
+        }
         Realm.setDefaultConfiguration(configuration);
     }
 
@@ -83,43 +96,68 @@ public class Database {
         startDate.setTimeInMillis(0);
         Calendar endDate = new GregorianCalendar(dateNow.get(Calendar.YEAR), dateNow.get(Calendar.MONTH), dateNow.get(Calendar.DATE));
         endDate.add(Calendar.MILLISECOND, -1);
-        List<RealmPlan> dayOldPlans = realm.where(RealmPlan.class)
+        RealmResults<RealmPlan> dayOldPlans = realm.where(RealmPlan.class)
                 .equalTo("timeType", TimeType.DAY.getId())
                 .between("startDate", startDate.getTime(), endDate.getTime())
                 .findAll();
         endDate = new GregorianCalendar(dateNow.get(Calendar.YEAR), dateNow.get(Calendar.MONTH), dateNow.get(Calendar.DATE));
-        endDate.add(Calendar.DATE, -endDate.get(Calendar.DAY_OF_WEEK));
+        endDate.setFirstDayOfWeek(Calendar.MONDAY);
+        endDate.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
         endDate.add(Calendar.MILLISECOND, -1);
-        List<RealmPlan> weekOldPlans = realm.where(RealmPlan.class)
+        RealmResults<RealmPlan> weekOldPlans = realm.where(RealmPlan.class)
                 .equalTo("timeType", TimeType.WEEK.getId())
                 .between("startDate", startDate.getTime(), endDate.getTime())
                 .findAll();
         endDate = new GregorianCalendar(dateNow.get(Calendar.YEAR), dateNow.get(Calendar.MONTH), 1);
-        List<RealmPlan> monthOldPlans = realm.where(RealmPlan.class)
+        RealmResults<RealmPlan> monthOldPlans = realm.where(RealmPlan.class)
                 .equalTo("timeType", TimeType.MONTH.getId())
                 .between("startDate", startDate.getTime(), endDate.getTime())
                 .findAll();
         endDate = new GregorianCalendar(dateNow.get(Calendar.YEAR), Calendar.JANUARY, 1);
-        List<RealmPlan> yearOldPlans = realm.where(RealmPlan.class)
+        RealmResults<RealmPlan> yearOldPlans = realm.where(RealmPlan.class)
                 .equalTo("timeType", TimeType.YEAR.getId())
                 .between("startDate", startDate.getTime(), endDate.getTime())
                 .findAll();
         if (dayOldPlans.size() > 0 || weekOldPlans.size() > 0 || monthOldPlans.size() > 0 || yearOldPlans.size() > 0) {
             realm.beginTransaction();
+            int i = 0;
             for (RealmPlan plan : dayOldPlans) {
-                plan.setStartDate(dateNow.getTime());
-                plan.setTimeType(TimeType.WEEK);
+                if (plan.isComplete()) {
+                    dayOldPlans.deleteFromRealm(i);
+                } else {
+                    plan.setStartDate(dateNow.getTime());
+                    plan.setTimeType(TimeType.WEEK);
+                }
+                i++;
             }
+            i = 0;
             for (RealmPlan plan : weekOldPlans) {
-                plan.setStartDate(dateNow.getTime());
-                plan.setTimeType(TimeType.MONTH);
+                if (plan.isComplete()) {
+                    weekOldPlans.deleteFromRealm(i);
+                } else {
+                    plan.setStartDate(dateNow.getTime());
+                    plan.setTimeType(TimeType.MONTH);
+                }
+                i++;
             }
+            i = 0;
             for (RealmPlan plan : monthOldPlans) {
-                plan.setStartDate(dateNow.getTime());
-                plan.setTimeType(TimeType.YEAR);
+                if (plan.isComplete()) {
+                    monthOldPlans.deleteFromRealm(i);
+                } else {
+                    plan.setStartDate(dateNow.getTime());
+                    plan.setTimeType(TimeType.YEAR);
+                }
+                i++;
             }
+            i = 0;
             for (RealmPlan plan : yearOldPlans) {
-                plan.setStartDate(dateNow.getTime());
+                if (plan.isComplete()) {
+                    yearOldPlans.deleteFromRealm(i);
+                } else {
+                    plan.setStartDate(dateNow.getTime());
+                }
+                i++;
             }
             realm.commitTransaction();
         }
