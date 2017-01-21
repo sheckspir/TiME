@@ -11,8 +11,8 @@
         android:layout_height="wrap_content"
         android:background="@color/time_primary"
         app:tabTextAppearance="@style/SmallTabText"
-        app:tabPaddingStart="@dimen/spacing_xxxsmall"
-        app:tabPaddingEnd="@dimen/spacing_xxxsmall"
+        app:tabPaddingStart="@dimen/spacing_xxsmall"
+        app:tabPaddingEnd="@dimen/spacing_xxsmall"
         app:tabTextColor="@android:color/white"
         app:tabSelectedTextColor="@android:color/white"
         app:tabIndicatorColor="@android:color/white"/>
@@ -27,7 +27,7 @@
             android:layout_height="match_parent"/>
 
         <android.support.design.widget.FloatingActionButton
-            android:id="@+id/plan_add_fab"
+            android:id="@+id/memoirs_add_fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"

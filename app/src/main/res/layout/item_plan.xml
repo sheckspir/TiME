@@ -2,10 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
-              android:paddingBottom="@dimen/spacing_xxsmall"
+              android:paddingBottom="@dimen/spacing_xsmall"
               android:paddingLeft="@dimen/spacing_normal"
               android:paddingRight="@dimen/spacing_normal"
-              android:paddingTop="@dimen/spacing_xxsmall"
+              android:paddingTop="@dimen/spacing_xsmall"
               android:background="?android:selectableItemBackground"
               android:orientation="horizontal">
 

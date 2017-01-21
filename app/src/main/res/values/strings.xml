@@ -5,8 +5,9 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
-    <string name="menu_plan">Планы</string>
     <string name="menu_main">Основное</string>
+    <string name="menu_plan">Планы</string>
+    <string name="menu_memoir">Мемуары</string>
 
     <string name="tab_plan_today">Сегодня</string>
     <string name="tab_plan_tomorrow">Завтра</string>
@@ -14,7 +15,18 @@
     <string name="tab_plan_month">Месяц</string>
     <string name="tab_plan_year">Год</string>
 
+    <string name="tab_memoirs_day">День</string>
+    <string name="tab_memoirs_week">Неделя</string>
+    <string name="tab_memoirs_month">Месяц</string>
+    <string name="tab_memoirs_year">Год</string>
+
+    <string name="memoir_this_period">Новый</string>
+    <string name="memoir_previous_period">Предыдущий</string>
+    <string name="memoir_message_add">Заполните мемуары</string>
+
     <string name="positive_button">Ок</string>
     <string name="negative_button">Отмена</string>
+
+
 
 </resources>

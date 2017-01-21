@@ -4,6 +4,8 @@
     <color name="time_primary_dark">#303F9F</color>
     <color name="time_accent">#FF4081</color>
 
+    <color name="time_background_gray">#CCCCCC</color>
+
     <color name="urgent_important">#FF0000</color>
     <color name="not_urgent_important">#47A76A</color>
     <color name="urgent_not_important">#FFFF00</color>

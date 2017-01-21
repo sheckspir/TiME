@@ -31,7 +31,7 @@ public class Database {
         try {
             Realm.init(context);
         } catch (RuntimeException e) {
-            configuration = new RealmConfiguration.Builder().build();
+            configuration = createConfiguration();
             try {
                 Realm.migrateRealm(configuration);
             } catch (FileNotFoundException e1) {
@@ -39,9 +39,16 @@ public class Database {
             }
         }
         if (configuration == null) {
-            configuration = new RealmConfiguration.Builder().build();
+            configuration = createConfiguration();
         }
         Realm.setDefaultConfiguration(configuration);
+    }
+
+    private static RealmConfiguration createConfiguration() {
+        return new RealmConfiguration.Builder()
+                .schemaVersion(1)
+                .migration(new TimeMigration())
+                .build();
     }
 
     private Realm realm;
@@ -68,7 +75,7 @@ public class Database {
 
     public void updatePlanEisenhower(Plan plan, EisenhowerType eisenhowerType) {
         realm.beginTransaction();
-        RealmPlan databasePlan = realm.where(RealmPlan.class).equalTo("id",plan.getId()).findFirst();
+        RealmPlan databasePlan = realm.where(RealmPlan.class).equalTo("id", plan.getId()).findFirst();
         if (databasePlan != null) {
             databasePlan.setEisenhowerType(eisenhowerType);
         } else {
@@ -79,7 +86,7 @@ public class Database {
 
     public void updatePlanComplete(Plan plan, boolean complete) {
         realm.beginTransaction();
-        RealmPlan databasePlan = realm.where(RealmPlan.class).equalTo("id",plan.getId()).findFirst();
+        RealmPlan databasePlan = realm.where(RealmPlan.class).equalTo("id", plan.getId()).findFirst();
         if (databasePlan != null) {
             databasePlan.setComplete(complete);
         } else {
@@ -88,14 +95,33 @@ public class Database {
         realm.commitTransaction();
     }
 
-    public Memoir newMemoir(Date date, String text, TimeType timeType) {
-        realm.beginTransaction();
-        Memoir memoir = realm.createObject(RealmMemoir.class, incrementId(RealmMemoir.class));
-        memoir.setDate(date);
-        memoir.setText(text);
-        memoir.setTimeType(timeType);
-        realm.commitTransaction();
-        return memoir;
+    public boolean newMemoir(Calendar calendar, String text, TimeType timeType, boolean previousPeriod) {
+        Calendar memoirDate = adaptCalendarForType(calendar, timeType, previousPeriod);
+        long countMemoirs = realm.where(RealmMemoir.class).equalTo("date", memoirDate.getTime()).count();
+        if (countMemoirs == 0) {
+            realm.beginTransaction();
+            Memoir memoir = realm.createObject(RealmMemoir.class, incrementId(RealmMemoir.class));
+            memoir.setDate(memoirDate.getTime());
+            memoir.setText(text);
+            memoir.setTimeType(timeType);
+            realm.commitTransaction();
+            return true;
+        }
+        return false;
+    }
+
+    public RealmMemoir getMemoir(TimeType timeType, Calendar date) {
+        Calendar memoirDate = adaptCalendarForType(date, timeType, false);
+        return realm.where(RealmMemoir.class)
+                .equalTo("timeType", timeType.getId())
+                .equalTo("date", memoirDate.getTime())
+                .findFirst();
+    }
+
+    public RealmResults<RealmMemoir> getMemoirs(TimeType timeType) {
+        return realm.where(RealmMemoir.class)
+                .equalTo("timeType", timeType.getId())
+                .findAll();
     }
 
     public RealmResults<RealmPlan> getPlans(TimeType timeType, Date date) {
@@ -111,7 +137,7 @@ public class Database {
     }
 
     public List<RealmPlan> getPlansForMainScreen(int limit) {
-        String[] fieldNames = new String[]{"eisenhowerType","timeType","startDate"};
+        String[] fieldNames = new String[]{"eisenhowerType", "timeType", "startDate"};
         Sort[] sorts = new Sort[]{Sort.ASCENDING, Sort.ASCENDING, Sort.ASCENDING};
         RealmResults<RealmPlan> allPlans = realm.where(RealmPlan.class)
                 .notEqualTo("isComplete", true)
@@ -205,5 +231,37 @@ public class Database {
             id = number.intValue() + 1;
         }
         return id;
+    }
+
+    private Calendar adaptCalendarForType(Calendar rawCalendar, TimeType timeType, boolean previousPeriod) {
+        Calendar memoirDate = new GregorianCalendar(rawCalendar.get(Calendar.YEAR), rawCalendar.get(Calendar.MONTH), rawCalendar.get(Calendar.DATE));
+        switch (timeType) {
+            case DAY:
+                if (previousPeriod) {
+                    memoirDate.add(Calendar.DATE, -1);
+                }
+                break;
+            case WEEK:
+                memoirDate.setFirstDayOfWeek(Calendar.MONDAY);
+                memoirDate.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                if (previousPeriod) {
+                    memoirDate.add(Calendar.DATE, -7);
+                }
+                break;
+            case MONTH:
+                memoirDate.set(Calendar.DATE, 1);
+                if (previousPeriod) {
+                    memoirDate.add(Calendar.MONTH, -1);
+                }
+                break;
+            case YEAR:
+                memoirDate.set(Calendar.DATE, 1);
+                memoirDate.set(Calendar.MONTH, Calendar.JANUARY);
+                if (previousPeriod) {
+                    memoirDate.add(Calendar.YEAR, -1);
+                }
+                break;
+        }
+        return memoirDate;
     }
 }

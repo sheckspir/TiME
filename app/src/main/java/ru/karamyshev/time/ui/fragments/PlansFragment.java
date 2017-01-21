@@ -1,143 +1,105 @@
 package ru.karamyshev.time.ui.fragments;
 
-
-import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AlertDialog;
-import android.text.TextUtils;
-import android.util.Log;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.util.Date;
+import java.util.List;
 
+import io.realm.RealmResults;
 import ru.karamyshev.time.R;
+import ru.karamyshev.time.database.model.RealmPlan;
 import ru.karamyshev.time.model.EisenhowerType;
+import ru.karamyshev.time.model.Plan;
 import ru.karamyshev.time.model.TimeType;
-import ru.karamyshev.time.ui.adapters.MainPagerAdapter;
+import ru.karamyshev.time.ui.adapters.PlanAdapter;
 
-public class PlansFragment extends BaseFragment {
-    private static final String TAG = PlansFragment.class.getSimpleName();
-    private static final int TODAY = 0;
-    private static final int TOMORROW = 1;
-    private static final int WEEK = 2;
-    private static final int MONTH = 3;
-    private static final int YEAR = 4;
+public class PlansFragment extends BaseFragment implements PlanAdapter.PlanListener{
+    private static final String ARG_TIME_TIPE = "time_tipe";
+    private static final String ARG_DATE = "date";
 
+    RecyclerView planRecycler;
+    PlanAdapter planAdapter;
+    TimeType timeType;
+    Date date;
 
-    int[] tabsInfo = new int[]{
-            R.string.tab_plan_today,
-            R.string.tab_plan_tomorrow,
-            R.string.tab_plan_week,
-            R.string.tab_plan_month,
-            R.string.tab_plan_year,
-    };
+    public static PlansFragment newInstance(TimeType timeType) {
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_TIME_TIPE, timeType);
+        PlansFragment plansFragment = new PlansFragment();
+        plansFragment.setArguments(args);
+        return plansFragment;
+    }
 
-    TabLayout tabLayout;
-    MainPagerAdapter pagerAdapter;
+    public static PlansFragment newInstance(Date date, TimeType timeType) {
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_TIME_TIPE, timeType);
+        args.putLong(ARG_DATE, date.getTime());
+        PlansFragment plansFragment = new PlansFragment();
+        plansFragment.setArguments(args);
+        return plansFragment;
+    }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "onCreate "  + this.toString());
+        timeType = (TimeType) getArguments().getSerializable(ARG_TIME_TIPE);
+        date = new Date(getArguments().getLong(ARG_DATE, new Date().getTime()));
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d(TAG, "onCreateView "  + this.toString());
-        View view = inflater.inflate(R.layout.framgment_plans, container, false);
+        View view = inflater.inflate(R.layout.fragment_plan_period, container, false);
+        planRecycler = (RecyclerView) view.findViewById(R.id.plan_recycler);
+        planRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
+        planAdapter = new PlanAdapter(this);
+        planRecycler.setAdapter(planAdapter);
 
-        tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
-        ViewPager viewPager = (ViewPager) view.findViewById(R.id.content_pager);
-
-        Calendar calendar = new java.util.GregorianCalendar();
-        pagerAdapter = new MainPagerAdapter(getChildFragmentManager());
-        pagerAdapter.addFragment(PlanPeriodFragment.newInstance(calendar.getTime(), TimeType.DAY));
-        calendar.add(Calendar.DATE, 1);
-        pagerAdapter.addFragment(PlanPeriodFragment.newInstance(calendar.getTime(), TimeType.DAY));
-        pagerAdapter.addFragment(PlanPeriodFragment.newInstance(TimeType.WEEK));
-        pagerAdapter.addFragment(PlanPeriodFragment.newInstance(TimeType.MONTH));
-        pagerAdapter.addFragment(PlanPeriodFragment.newInstance(TimeType.YEAR));
-        viewPager.setAdapter(pagerAdapter);
-
-
-        tabLayout.setupWithViewPager(viewPager);
-        for (int i = 0; i < tabLayout.getTabCount(); ++i) {
-            //noinspection ConstantConditions
-            tabLayout.getTabAt(i).setText(tabsInfo[i]);
-        }
-        //noinspection ConstantConditions
-        tabLayout.getTabAt(0).select();
-
-        view.findViewById(R.id.plan_add_fab).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                addNewPlan();
-            }
-        });
-
-        database.moveOldPlans();
-
+        updatePlans();
         return view;
     }
 
-    private void addNewPlan() {
-        final int selected = tabLayout.getSelectedTabPosition();
-        final Calendar calendar = new GregorianCalendar();
-        final TimeType timeType;
-        switch (selected) {
-            default:
-            case TODAY:
-                timeType = TimeType.DAY;
-                break;
-            case TOMORROW:
-                timeType = TimeType.DAY;
-                calendar.add(Calendar.DATE, 1);
-                break;
-            case WEEK:
-                timeType = TimeType.WEEK;
-                if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
-                    calendar.add(Calendar.DATE, 1);
-                }
-                break;
-            case MONTH:
-                timeType = TimeType.MONTH;
-                if (calendar.getActualMaximum(Calendar.DAY_OF_MONTH) == calendar.get(Calendar.DAY_OF_MONTH)) {
-                    calendar.add(Calendar.DATE, 1);
-                }
-                break;
-            case YEAR:
-                timeType = TimeType.YEAR;
-                break;
-
-        }
-        View view = LayoutInflater.from(getActivity()).inflate(R.layout.item_plan_add, null, false);
-        final EditText planEditText = (EditText) view.findViewById(R.id.plan_edit);
-        new AlertDialog.Builder(getActivity())
-                .setView(view)
-                .setPositiveButton(R.string.positive_button, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String planText = planEditText.getText().toString();
-                        if (!TextUtils.isEmpty(planText.trim())) {
-                            database.newPlan(calendar.getTime(), EisenhowerType.NOT_URGENT_IMPORTANT, planEditText.getText().toString(), timeType);
-                        }
-                        Fragment fragment = pagerAdapter.getItem(selected);
-                        if (fragment instanceof PlanPeriodFragment) {
-                            ((PlanPeriodFragment) fragment).updatePlans();
-                        }
-                    }
-                })
-                .setNegativeButton(R.string.negative_button, null)
-                .show();
+    @Override
+    public void onResume() {
+        super.onResume();
+        updatePlans();
     }
+
+    @Override
+    public void planChangeEisenhower(Plan plan, EisenhowerType eisenhowerType) {
+        database.updatePlanEisenhower(plan, eisenhowerType);
+    }
+
+    @Override
+    public void planChecked(Plan plan, boolean isChecked) {
+        database.updatePlanComplete(plan, isChecked);
+    }
+
+    @Override
+    public void onClickPlan(Plan plan) {
+        // TODO: 15.01.2017 implement it later
+    }
+
+    public void updatePlans() {
+        RealmResults<RealmPlan> databasePlanList = database.getPlans(timeType, date);
+        updateAdapter(databasePlanList);
+    }
+
+    private void updateAdapter(List<? extends Plan> planList) {
+        if (planAdapter == null) {
+            planAdapter = new PlanAdapter(this);
+            planAdapter.setPlanList(planList);
+            planRecycler.setAdapter(planAdapter);
+        } else {
+            planAdapter.setPlanList(planList);
+            planAdapter.notifyDataSetChanged();
+        }
+    }
+
 }

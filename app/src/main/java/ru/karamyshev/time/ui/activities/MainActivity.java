@@ -11,9 +11,9 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import ru.karamyshev.time.R;
-import ru.karamyshev.time.ui.fragments.PlanPeriodFragment;
-import ru.karamyshev.time.ui.fragments.PlansFragment;
-import ru.karamyshev.time.ui.fragments.PlansGoalsFragment;
+import ru.karamyshev.time.ui.fragments.MemoirsTabFragment;
+import ru.karamyshev.time.ui.fragments.PlansTabFragment;
+import ru.karamyshev.time.ui.fragments.MainFragment;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -52,15 +52,19 @@ public class MainActivity extends AppCompatActivity
         switch (item.getItemId()) {
             case R.id.nav_main:
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.content_layout, new PlansGoalsFragment())
+                        .replace(R.id.content_layout, new MainFragment())
                         .commit();
                 break;
             case R.id.nav_plan:
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.content_layout, new PlansFragment())
+                        .replace(R.id.content_layout, new PlansTabFragment())
                         .commit();
                 break;
-            // TODO: 15.01.2017 add other fragments
+            case R.id.nav_memoir:
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_layout, new MemoirsTabFragment())
+                        .commit();
+                break;
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
