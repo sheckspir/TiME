@@ -6,6 +6,7 @@
 
     <string name="action_settings">Settings</string>
     <string name="menu_plan">Планы</string>
+    <string name="menu_main">Основное</string>
 
     <string name="tab_plan_today">Сегодня</string>
     <string name="tab_plan_tomorrow">Завтра</string>

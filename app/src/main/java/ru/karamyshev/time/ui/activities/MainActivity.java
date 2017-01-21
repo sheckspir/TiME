@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import ru.karamyshev.time.R;
 import ru.karamyshev.time.ui.fragments.PlanPeriodFragment;
 import ru.karamyshev.time.ui.fragments.PlansFragment;
+import ru.karamyshev.time.ui.fragments.PlansGoalsFragment;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -49,6 +50,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.nav_main:
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_layout, new PlansGoalsFragment())
+                        .commit();
+                break;
             case R.id.nav_plan:
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_layout, new PlansFragment())

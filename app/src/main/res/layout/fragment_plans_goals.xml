@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
-              android:paddingLeft="@dimen/spacing_normal"
-              android:paddingRight="@dimen/spacing_normal"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
-    <EditText
-        android:id="@+id/plan_edit"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/plan_recycler"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:lines="3"
-        android:inputType="textAutoCorrect"/>
+        android:layout_height="match_parent"/>
 
 </LinearLayout>

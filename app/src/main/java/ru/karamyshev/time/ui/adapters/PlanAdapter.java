@@ -19,7 +19,10 @@ import ru.karamyshev.time.model.Plan;
 public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.PlanViewHolder> {
 
     public interface PlanListener {
-        void planWasUpdated(Plan plan);
+        void planChangeEisenhower(Plan plan, EisenhowerType eisenhowerType);
+
+        void planChecked(Plan plan, boolean completed);
+
         void onClickPlan(Plan plan);
     }
 
@@ -55,8 +58,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.PlanViewHolder
             checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    plan.setComplete(isChecked);
-                    planUpdateListener.planWasUpdated(plan);
+                    planUpdateListener.planChecked(plan, isChecked);
                 }
             });
             planText.setText(plan.getText());
@@ -88,9 +90,8 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.PlanViewHolder
         }
 
         private void updatePlanType(Plan plan, EisenhowerType newType) {
-            plan.setEisenhowerType(newType);
+            planUpdateListener.planChangeEisenhower(plan, newType);
             showPlanColor(plan);
-            planUpdateListener.planWasUpdated(plan);
         }
 
         private void showPlanColor(Plan plan) {
@@ -117,8 +118,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.PlanViewHolder
     private List<? extends Plan> planList;
     private PlanListener updateListener;
 
-    public PlanAdapter(List<? extends Plan> planList, PlanListener planUpdateListener) {
-        this.planList = planList;
+    public PlanAdapter(PlanListener planUpdateListener) {
         this.updateListener = planUpdateListener;
     }
 
@@ -135,5 +135,9 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.PlanViewHolder
     @Override
     public int getItemCount() {
         return planList.size();
+    }
+
+    public void setPlanList(List<? extends Plan> planList) {
+        this.planList = planList;
     }
 }

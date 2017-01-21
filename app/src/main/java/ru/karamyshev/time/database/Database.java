@@ -13,13 +13,17 @@ import java.util.List;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
+import io.realm.Sort;
 import io.realm.exceptions.RealmMigrationNeededException;
+import ru.karamyshev.time.database.model.RealmMemoir;
 import ru.karamyshev.time.database.model.RealmPlan;
 import ru.karamyshev.time.model.EisenhowerType;
+import ru.karamyshev.time.model.Memoir;
 import ru.karamyshev.time.model.Plan;
 import ru.karamyshev.time.model.TimeType;
 
 public class Database {
+    private static final String TAG = Database.class.getSimpleName();
 
     private static RealmConfiguration configuration;
 
@@ -62,19 +66,36 @@ public class Database {
         return plan;
     }
 
-    public void update(Plan plan) {
+    public void updatePlanEisenhower(Plan plan, EisenhowerType eisenhowerType) {
         realm.beginTransaction();
-        RealmPlan databasePlan = realm.where(RealmPlan.class).equalTo("id", plan.getId()).findFirst();
+        RealmPlan databasePlan = realm.where(RealmPlan.class).equalTo("id",plan.getId()).findFirst();
         if (databasePlan != null) {
-            databasePlan.update(plan);
+            databasePlan.setEisenhowerType(eisenhowerType);
         } else {
-            throw new IllegalArgumentException("plan not inside database " + plan.getId());
+            Log.wtf(TAG, "can't update plan. Plan not find. id = " + plan.getId() + " " + plan);
         }
         realm.commitTransaction();
     }
 
-    public RealmResults<RealmPlan> getAllPlans() {
-        return realm.where(RealmPlan.class).findAll();
+    public void updatePlanComplete(Plan plan, boolean complete) {
+        realm.beginTransaction();
+        RealmPlan databasePlan = realm.where(RealmPlan.class).equalTo("id",plan.getId()).findFirst();
+        if (databasePlan != null) {
+            databasePlan.setComplete(complete);
+        } else {
+            Log.wtf(TAG, "can't update plan. Plan not find. id = " + plan.getId() + " " + plan);
+        }
+        realm.commitTransaction();
+    }
+
+    public Memoir newMemoir(Date date, String text, TimeType timeType) {
+        realm.beginTransaction();
+        Memoir memoir = realm.createObject(RealmMemoir.class, incrementId(RealmMemoir.class));
+        memoir.setDate(date);
+        memoir.setText(text);
+        memoir.setTimeType(timeType);
+        realm.commitTransaction();
+        return memoir;
     }
 
     public RealmResults<RealmPlan> getPlans(TimeType timeType, Date date) {
@@ -86,37 +107,46 @@ public class Database {
         endDate.add(Calendar.MILLISECOND, -1);
         return realm.where(RealmPlan.class).equalTo("timeType", timeType.getId())
                 .between("startDate", startDate.getTime(), endDate.getTime())
-                .findAll();
-        // TODO: 15.01.2017 sort
+                .findAllSorted("eisenhowerType", Sort.ASCENDING, "isComplete", Sort.ASCENDING);
+    }
+
+    public List<RealmPlan> getPlansForMainScreen(int limit) {
+        String[] fieldNames = new String[]{"eisenhowerType","timeType","startDate"};
+        Sort[] sorts = new Sort[]{Sort.ASCENDING, Sort.ASCENDING, Sort.ASCENDING};
+        RealmResults<RealmPlan> allPlans = realm.where(RealmPlan.class)
+                .notEqualTo("isComplete", true)
+                .findAllSorted(fieldNames, sorts);
+        if (allPlans.size() > 0) {
+            int localLimit = limit < allPlans.size()? limit: allPlans.size();
+            return allPlans.subList(0, localLimit);
+        } else {
+            return allPlans;
+        }
     }
 
     public void moveOldPlans() {
         Calendar dateNow = new GregorianCalendar();
-        Calendar startDate = new GregorianCalendar();
-        startDate.setTimeInMillis(0);
         Calendar endDate = new GregorianCalendar(dateNow.get(Calendar.YEAR), dateNow.get(Calendar.MONTH), dateNow.get(Calendar.DATE));
-        endDate.add(Calendar.MILLISECOND, -1);
         RealmResults<RealmPlan> dayOldPlans = realm.where(RealmPlan.class)
                 .equalTo("timeType", TimeType.DAY.getId())
-                .between("startDate", startDate.getTime(), endDate.getTime())
+                .lessThan("startDate", endDate.getTime())
                 .findAll();
         endDate = new GregorianCalendar(dateNow.get(Calendar.YEAR), dateNow.get(Calendar.MONTH), dateNow.get(Calendar.DATE));
         endDate.setFirstDayOfWeek(Calendar.MONDAY);
         endDate.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-        endDate.add(Calendar.MILLISECOND, -1);
         RealmResults<RealmPlan> weekOldPlans = realm.where(RealmPlan.class)
                 .equalTo("timeType", TimeType.WEEK.getId())
-                .between("startDate", startDate.getTime(), endDate.getTime())
+                .lessThan("startDate", endDate.getTime())
                 .findAll();
         endDate = new GregorianCalendar(dateNow.get(Calendar.YEAR), dateNow.get(Calendar.MONTH), 1);
         RealmResults<RealmPlan> monthOldPlans = realm.where(RealmPlan.class)
                 .equalTo("timeType", TimeType.MONTH.getId())
-                .between("startDate", startDate.getTime(), endDate.getTime())
+                .lessThan("startDate", endDate.getTime())
                 .findAll();
         endDate = new GregorianCalendar(dateNow.get(Calendar.YEAR), Calendar.JANUARY, 1);
         RealmResults<RealmPlan> yearOldPlans = realm.where(RealmPlan.class)
                 .equalTo("timeType", TimeType.YEAR.getId())
-                .between("startDate", startDate.getTime(), endDate.getTime())
+                .lessThan("startDate", endDate.getTime())
                 .findAll();
         if (dayOldPlans.size() > 0 || weekOldPlans.size() > 0 || monthOldPlans.size() > 0 || yearOldPlans.size() > 0) {
             realm.beginTransaction();
