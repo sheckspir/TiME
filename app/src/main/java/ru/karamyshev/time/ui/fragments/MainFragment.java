@@ -1,5 +1,6 @@
 package ru.karamyshev.time.ui.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
@@ -15,11 +16,10 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import ru.karamyshev.time.R;
-import ru.karamyshev.time.database.model.RealmPlan;
 import ru.karamyshev.time.model.EisenhowerType;
-import ru.karamyshev.time.model.Memoir;
 import ru.karamyshev.time.model.Plan;
 import ru.karamyshev.time.model.TimeType;
+import ru.karamyshev.time.ui.activities.PlanActivity;
 import ru.karamyshev.time.ui.adapters.PlanAdapter;
 
 public class MainFragment extends BaseFragment implements PlanAdapter.PlanListener {
@@ -62,34 +62,18 @@ public class MainFragment extends BaseFragment implements PlanAdapter.PlanListen
 
     @Override
     public void onClickPlan(Plan plan) {
-        // TODO: 21.01.2017 implement this later
+        Intent intent = new Intent(getActivity(), PlanActivity.class);
+        intent.putExtra(PlanActivity.ARG_PLAN_ID, plan.getId());
+        getActivity().startActivity(intent);
     }
 
     private void checkMemoirs() {
         int memoirTextId = 0;
         Calendar calendar = new GregorianCalendar();
         if (calendar.get(Calendar.HOUR_OF_DAY) > HOUR_FOR_SHOW_MESSAGE) {
-            //noinspection WrongConstant
-            if (calendar.get(Calendar.DAY_OF_YEAR) == calendar.getActualMaximum(Calendar.DAY_OF_YEAR)) {
-                Memoir memoir = database.getMemoir(TimeType.YEAR, calendar);
-                if (memoir == null) {
-                    memoirTextId = R.string.memoir_message_add;
-                }
-            } else if (calendar.get(Calendar.DAY_OF_MONTH) == calendar.get(Calendar.DAY_OF_MONTH)) {
-                Memoir memoir = database.getMemoir(TimeType.MONTH, calendar);
-                if (memoir == null) {
-                    memoirTextId = R.string.memoir_message_add;
-                }
-            } else if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
-                Memoir memoir = database.getMemoir(TimeType.WEEK, calendar);
-                if (memoir == null) {
-                    memoirTextId = R.string.memoir_message_add;
-                }
-            } else {
-                Memoir memoir = database.getMemoir(TimeType.DAY, calendar);
-                if (memoir == null) {
-                    memoirTextId = R.string.memoir_message_add;
-                }
+            TimeType timeType = database.neededCreatedTypeMemoir();
+            if (timeType != null) {
+                memoirTextId = R.string.memoir_message_add;
             }
         }
         showMessage(memoirTextId);
@@ -105,7 +89,7 @@ public class MainFragment extends BaseFragment implements PlanAdapter.PlanListen
     }
 
     private void updatePlans() {
-        List<RealmPlan> databasePlanList = database.getPlansForMainScreen(PLANS_LIMIT);
+        List<Plan> databasePlanList = database.getPlansForMainScreen(PLANS_LIMIT);
         updateAdapter(databasePlanList);
     }
 

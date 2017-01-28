@@ -58,11 +58,9 @@ public class PlansTabFragment extends BaseFragment {
         tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
         ViewPager viewPager = (ViewPager) view.findViewById(R.id.content_pager);
 
-        Calendar calendar = new java.util.GregorianCalendar();
         pagerAdapter = new MainPagerAdapter(getChildFragmentManager());
-        pagerAdapter.addFragment(PlansFragment.newInstance(calendar.getTime(), TimeType.DAY));
-        calendar.add(Calendar.DATE, 1);
-        pagerAdapter.addFragment(PlansFragment.newInstance(calendar.getTime(), TimeType.DAY));
+        pagerAdapter.addFragment(PlansFragment.newInstance(TimeType.DAY));
+        pagerAdapter.addFragment(PlansFragment.newInstance(1, TimeType.DAY));
         pagerAdapter.addFragment(PlansFragment.newInstance(TimeType.WEEK));
         pagerAdapter.addFragment(PlansFragment.newInstance(TimeType.MONTH));
         pagerAdapter.addFragment(PlansFragment.newInstance(TimeType.YEAR));

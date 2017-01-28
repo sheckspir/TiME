@@ -15,9 +15,6 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-
 import ru.karamyshev.time.R;
 import ru.karamyshev.time.model.TimeType;
 import ru.karamyshev.time.ui.adapters.MainPagerAdapter;
@@ -106,8 +103,7 @@ public class MemoirsTabFragment extends BaseFragment {
                         String memoirText = memoirEdit.getText().toString();
                         if (!TextUtils.isEmpty(memoirText.trim())) {
                             boolean previousPeriod = !memoirTodaySwitch.isChecked();
-                            Calendar calendar = new GregorianCalendar();
-                            database.newMemoir(calendar, memoirText, timeType, previousPeriod);
+                            database.newMemoir(memoirText, timeType, previousPeriod);
                         }
                         Fragment fragment = pagerAdapter.getItem(selected);
                         if (fragment instanceof MemoirsFragment) {

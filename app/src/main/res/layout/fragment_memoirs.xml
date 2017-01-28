@@ -8,7 +8,7 @@
         android:id="@+id/memoirs_recycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="true"
+        android:clipToPadding="false"
         android:paddingBottom="@dimen/spacing_normal"
         android:paddingTop="@dimen/spacing_normal"/>
 

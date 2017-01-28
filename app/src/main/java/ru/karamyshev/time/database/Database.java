@@ -5,6 +5,7 @@ import android.content.Context;
 import android.util.Log;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -12,14 +13,17 @@ import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import io.realm.exceptions.RealmMigrationNeededException;
+import ru.karamyshev.time.core.Utils;
 import ru.karamyshev.time.database.model.RealmMemoir;
 import ru.karamyshev.time.database.model.RealmPlan;
 import ru.karamyshev.time.model.EisenhowerType;
 import ru.karamyshev.time.model.Memoir;
 import ru.karamyshev.time.model.Plan;
+import ru.karamyshev.time.model.PlanImpl;
 import ru.karamyshev.time.model.TimeType;
 
 public class Database {
@@ -73,9 +77,26 @@ public class Database {
         return plan;
     }
 
+    public void updatePlan(Plan plan, String text, TimeType timeType, int shift) {
+        realm.beginTransaction();
+        RealmPlan databasePlan = realm.where(RealmPlan.class).equalTo("id", plan.getId()).findFirst();
+        plan.setText(text);
+        plan.setTimeType(timeType);
+        plan.setStartDate(Utils.getStartDateForType(timeType, shift).getTime());
+        if (databasePlan != null) {
+            databasePlan.setText(text);
+            databasePlan.setTimeType(timeType);
+            databasePlan.setStartDate(Utils.getStartDateForType(timeType, shift).getTime());
+        } else {
+            Log.wtf(TAG, "can't update plan. Plan not find. id = " + plan.getId() + " " + plan);
+        }
+        realm.commitTransaction();
+    }
+
     public void updatePlanEisenhower(Plan plan, EisenhowerType eisenhowerType) {
         realm.beginTransaction();
         RealmPlan databasePlan = realm.where(RealmPlan.class).equalTo("id", plan.getId()).findFirst();
+        plan.setEisenhowerType(eisenhowerType);
         if (databasePlan != null) {
             databasePlan.setEisenhowerType(eisenhowerType);
         } else {
@@ -87,6 +108,7 @@ public class Database {
     public void updatePlanComplete(Plan plan, boolean complete) {
         realm.beginTransaction();
         RealmPlan databasePlan = realm.where(RealmPlan.class).equalTo("id", plan.getId()).findFirst();
+        plan.setComplete(complete);
         if (databasePlan != null) {
             databasePlan.setComplete(complete);
         } else {
@@ -95,8 +117,15 @@ public class Database {
         realm.commitTransaction();
     }
 
-    public boolean newMemoir(Calendar calendar, String text, TimeType timeType, boolean previousPeriod) {
-        Calendar memoirDate = adaptCalendarForType(calendar, timeType, previousPeriod);
+    public boolean removePlan(int planId) {
+        realm.beginTransaction();
+        boolean success = realm.where(RealmPlan.class).equalTo("id", planId).findAll().deleteFirstFromRealm();
+        realm.commitTransaction();
+        return success;
+    }
+
+    public boolean newMemoir(String text, TimeType timeType, boolean previousPeriod) {
+        Calendar memoirDate = Utils.getEndDateForType(timeType, previousPeriod? -1 : 0);
         long countMemoirs = realm.where(RealmMemoir.class).equalTo("date", memoirDate.getTime()).count();
         if (countMemoirs == 0) {
             realm.beginTransaction();
@@ -110,44 +139,72 @@ public class Database {
         return false;
     }
 
-    public RealmMemoir getMemoir(TimeType timeType, Calendar date) {
-        Calendar memoirDate = adaptCalendarForType(date, timeType, false);
-        return realm.where(RealmMemoir.class)
-                .equalTo("timeType", timeType.getId())
-                .equalTo("date", memoirDate.getTime())
-                .findFirst();
+    public TimeType neededCreatedTypeMemoir() {
+        TimeType neededCreateType = null;
+        Calendar calendar = new GregorianCalendar();
+        TimeType timeTypeToCheck;
+        //noinspection WrongConstant
+        if (calendar.get(Calendar.DAY_OF_YEAR) == calendar.getActualMaximum(Calendar.DAY_OF_YEAR)) {
+            timeTypeToCheck = TimeType.YEAR;
+        } else if (calendar.get(Calendar.DAY_OF_MONTH) == calendar.get(Calendar.DAY_OF_MONTH)) {
+            timeTypeToCheck = TimeType.MONTH;
+        } else if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
+            timeTypeToCheck = TimeType.WEEK;
+        } else {
+            timeTypeToCheck = TimeType.DAY;
+        }
+        Calendar memoirEnd = Utils.getEndDateForType(timeTypeToCheck, 0);
+        Calendar memoirStart = Utils.getStartDateForType(timeTypeToCheck, 0);
+        long countMemoir = realm.where(RealmMemoir.class)
+                .equalTo("timeType", timeTypeToCheck.getId())
+                .between("date", memoirStart.getTime(), memoirEnd.getTime())
+                .count();
+        if (countMemoir > 0) {
+            neededCreateType = timeTypeToCheck;
+        }
+        return neededCreateType;
     }
 
-    public RealmResults<RealmMemoir> getMemoirs(TimeType timeType) {
-        return realm.where(RealmMemoir.class)
+    public DatabaseResults<RealmMemoir> getMemoirs(TimeType timeType) {
+        return new DatabaseResults<>(realm.where(RealmMemoir.class)
                 .equalTo("timeType", timeType.getId())
-                .findAll();
+                .findAll());
     }
 
-    public RealmResults<RealmPlan> getPlans(TimeType timeType, Date date) {
-        Calendar startDate = new GregorianCalendar();
-        startDate.setTimeInMillis(date.getTime());
-        startDate = new GregorianCalendar(startDate.get(Calendar.YEAR), startDate.get(Calendar.MONTH), startDate.get(Calendar.DATE));
-        Calendar endDate = new GregorianCalendar(startDate.get(Calendar.YEAR), startDate.get(Calendar.MONTH), startDate.get(Calendar.DATE));
-        endDate.add(Calendar.DATE, 1);
-        endDate.add(Calendar.MILLISECOND, -1);
-        return realm.where(RealmPlan.class).equalTo("timeType", timeType.getId())
-                .between("startDate", startDate.getTime(), endDate.getTime())
+    public List<Plan> getPlans(TimeType timeType, int shiftPeriod) {
+        RealmQuery<RealmPlan> query = realm.where(RealmPlan.class).equalTo("timeType", timeType.getId());
+        if (timeType == TimeType.DAY) {
+            Calendar endDate = Utils.getEndDateForType(timeType, shiftPeriod);
+            Calendar startDate = Utils.getStartDateForType(timeType, shiftPeriod);
+            query.between("startDate", startDate.getTime(), endDate.getTime());
+        }
+        RealmResults<RealmPlan> realmPlans = query
                 .findAllSorted("eisenhowerType", Sort.ASCENDING, "isComplete", Sort.ASCENDING);
+        List<Plan> planList = new ArrayList<>();
+        for (RealmPlan realmPlan : realmPlans) {
+            planList.add(new PlanImpl(realmPlan));
+        }
+        return planList;
     }
 
-    public List<RealmPlan> getPlansForMainScreen(int limit) {
+    public List<Plan> getPlansForMainScreen(int limit) {
         String[] fieldNames = new String[]{"eisenhowerType", "timeType", "startDate"};
         Sort[] sorts = new Sort[]{Sort.ASCENDING, Sort.ASCENDING, Sort.ASCENDING};
         RealmResults<RealmPlan> allPlans = realm.where(RealmPlan.class)
                 .notEqualTo("isComplete", true)
                 .findAllSorted(fieldNames, sorts);
-        if (allPlans.size() > 0) {
-            int localLimit = limit < allPlans.size()? limit: allPlans.size();
-            return allPlans.subList(0, localLimit);
-        } else {
-            return allPlans;
+        List<Plan> planList = new ArrayList<>();
+        int localLimit = limit < allPlans.size()? limit: allPlans.size();
+        for (int i = 0; i < localLimit; i++) {
+            planList.add(new PlanImpl(allPlans.get(i)));
         }
+        return planList;
+    }
+
+    public Plan getPlan(int planId) {
+        return realm.where(RealmPlan.class)
+                .equalTo("id", planId)
+                .findFirst();
     }
 
     public void moveOldPlans() {
@@ -231,37 +288,5 @@ public class Database {
             id = number.intValue() + 1;
         }
         return id;
-    }
-
-    private Calendar adaptCalendarForType(Calendar rawCalendar, TimeType timeType, boolean previousPeriod) {
-        Calendar memoirDate = new GregorianCalendar(rawCalendar.get(Calendar.YEAR), rawCalendar.get(Calendar.MONTH), rawCalendar.get(Calendar.DATE));
-        switch (timeType) {
-            case DAY:
-                if (previousPeriod) {
-                    memoirDate.add(Calendar.DATE, -1);
-                }
-                break;
-            case WEEK:
-                memoirDate.setFirstDayOfWeek(Calendar.MONDAY);
-                memoirDate.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-                if (previousPeriod) {
-                    memoirDate.add(Calendar.DATE, -7);
-                }
-                break;
-            case MONTH:
-                memoirDate.set(Calendar.DATE, 1);
-                if (previousPeriod) {
-                    memoirDate.add(Calendar.MONTH, -1);
-                }
-                break;
-            case YEAR:
-                memoirDate.set(Calendar.DATE, 1);
-                memoirDate.set(Calendar.MONTH, Calendar.JANUARY);
-                if (previousPeriod) {
-                    memoirDate.add(Calendar.YEAR, -1);
-                }
-                break;
-        }
-        return memoirDate;
     }
 }

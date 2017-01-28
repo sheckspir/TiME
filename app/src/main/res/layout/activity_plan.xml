@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:layout_marginLeft="@dimen/spacing_normal"
+              android:layout_marginRight="@dimen/spacing_normal"
+              android:orientation="vertical">
+
+    <EditText
+        android:id="@+id/plan_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <RadioGroup
+        android:id="@+id/time_type_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_normal">
+
+        <RadioButton
+            android:id="@+id/today_rbutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tab_plan_today"/>
+
+        <RadioButton
+            android:id="@+id/tomorrow_rbutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tab_plan_tomorrow"/>
+
+        <RadioButton
+            android:id="@+id/week_rbutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tab_plan_week"/>
+
+        <RadioButton
+            android:id="@+id/month_rbutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tab_plan_month"/>
+
+        <RadioButton
+            android:id="@+id/year_rbutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tab_plan_year"/>
+
+    </RadioGroup>
+
+</LinearLayout>

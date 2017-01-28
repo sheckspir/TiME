@@ -1,5 +1,6 @@
 package ru.karamyshev.time.ui.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
@@ -8,25 +9,24 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.Date;
 import java.util.List;
 
-import io.realm.RealmResults;
 import ru.karamyshev.time.R;
-import ru.karamyshev.time.database.model.RealmPlan;
 import ru.karamyshev.time.model.EisenhowerType;
 import ru.karamyshev.time.model.Plan;
 import ru.karamyshev.time.model.TimeType;
+import ru.karamyshev.time.ui.activities.PlanActivity;
 import ru.karamyshev.time.ui.adapters.PlanAdapter;
 
 public class PlansFragment extends BaseFragment implements PlanAdapter.PlanListener{
     private static final String ARG_TIME_TIPE = "time_tipe";
-    private static final String ARG_DATE = "date";
+    private static final String ARG_SHIFT_PERIOD = "shift_date_period";
 
-    RecyclerView planRecycler;
-    PlanAdapter planAdapter;
-    TimeType timeType;
-    Date date;
+    private RecyclerView planRecycler;
+    private PlanAdapter planAdapter;
+    private TimeType timeType;
+    private int shiftPeriod;
+
 
     public static PlansFragment newInstance(TimeType timeType) {
         Bundle args = new Bundle();
@@ -36,10 +36,10 @@ public class PlansFragment extends BaseFragment implements PlanAdapter.PlanListe
         return plansFragment;
     }
 
-    public static PlansFragment newInstance(Date date, TimeType timeType) {
+    public static PlansFragment newInstance(int shiftPeriod, TimeType timeType) {
         Bundle args = new Bundle();
         args.putSerializable(ARG_TIME_TIPE, timeType);
-        args.putLong(ARG_DATE, date.getTime());
+        args.putInt(ARG_SHIFT_PERIOD, shiftPeriod);
         PlansFragment plansFragment = new PlansFragment();
         plansFragment.setArguments(args);
         return plansFragment;
@@ -49,7 +49,7 @@ public class PlansFragment extends BaseFragment implements PlanAdapter.PlanListe
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         timeType = (TimeType) getArguments().getSerializable(ARG_TIME_TIPE);
-        date = new Date(getArguments().getLong(ARG_DATE, new Date().getTime()));
+        shiftPeriod = getArguments().getInt(ARG_SHIFT_PERIOD, 0);
     }
 
     @Nullable
@@ -83,11 +83,13 @@ public class PlansFragment extends BaseFragment implements PlanAdapter.PlanListe
 
     @Override
     public void onClickPlan(Plan plan) {
-        // TODO: 15.01.2017 implement it later
+        Intent intent = new Intent(getActivity(), PlanActivity.class);
+        intent.putExtra(PlanActivity.ARG_PLAN_ID, plan.getId());
+        getActivity().startActivity(intent);
     }
 
     public void updatePlans() {
-        RealmResults<RealmPlan> databasePlanList = database.getPlans(timeType, date);
+        List<Plan> databasePlanList = database.getPlans(timeType, shiftPeriod);
         updateAdapter(databasePlanList);
     }
 

@@ -12,6 +12,7 @@ import java.util.List;
 
 import io.realm.RealmResults;
 import ru.karamyshev.time.R;
+import ru.karamyshev.time.database.DatabaseResults;
 import ru.karamyshev.time.database.model.RealmMemoir;
 import ru.karamyshev.time.model.Memoir;
 import ru.karamyshev.time.model.TimeType;
@@ -53,7 +54,7 @@ public class MemoirsFragment extends BaseFragment {
     }
 
     public void updateMemoirs() {
-        RealmResults<RealmMemoir> memoirs = database.getMemoirs(timeType);
+        DatabaseResults<RealmMemoir> memoirs = database.getMemoirs(timeType);
         updateAdapter(memoirs);
     }
 

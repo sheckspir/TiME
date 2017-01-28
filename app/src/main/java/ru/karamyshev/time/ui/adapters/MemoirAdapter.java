@@ -13,7 +13,10 @@ import ru.karamyshev.time.R;
 import ru.karamyshev.time.model.Memoir;
 
 public class MemoirAdapter extends RecyclerView.Adapter<MemoirAdapter.MemoirsViewHolder> {
-    private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+    private static final SimpleDateFormat dayDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+    private static final SimpleDateFormat weekDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+    private static final SimpleDateFormat monthDateFormat = new SimpleDateFormat("MMM yyyy");
+    private static final SimpleDateFormat yearDateFormat = new SimpleDateFormat("yyyy");
 
     class MemoirsViewHolder extends RecyclerView.ViewHolder {
         TextView dateText;
@@ -26,8 +29,21 @@ public class MemoirAdapter extends RecyclerView.Adapter<MemoirAdapter.MemoirsVie
         }
 
         void bind(Memoir memoir) {
-            dateText.setText(simpleDateFormat.format(memoir.getDate()));
             textText.setText(memoir.getText());
+            switch (memoir.getTimeType()) {
+                case DAY:
+                    dateText.setText(dayDateFormat.format(memoir.getDate()));
+                    break;
+                case WEEK:
+                    dateText.setText(weekDateFormat.format(memoir.getDate()));
+                    break;
+                case MONTH:
+                    dateText.setText(monthDateFormat.format(memoir.getDate()));
+                    break;
+                case YEAR:
+                    dateText.setText(yearDateFormat.format(memoir.getDate()));
+                    break;
+            }
         }
     }
 

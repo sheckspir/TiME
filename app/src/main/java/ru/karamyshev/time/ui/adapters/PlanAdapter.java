@@ -47,20 +47,19 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.PlanViewHolder
         }
 
         void bind(final Plan plan) {
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public boolean onLongClick(View v) {
+                public void onClick(View v) {
                     planUpdateListener.onClickPlan(plan);
-                    return true;
                 }
             });
-            checkBox.setChecked(plan.isComplete());
             checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     planUpdateListener.planChecked(plan, isChecked);
                 }
             });
+            checkBox.setChecked(plan.isComplete());
             planText.setText(plan.getText());
             showPlanColor(plan);
             urgentImportantButton.setOnClickListener(new View.OnClickListener() {
