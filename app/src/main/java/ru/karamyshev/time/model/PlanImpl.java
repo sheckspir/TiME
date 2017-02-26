@@ -11,6 +11,7 @@ public class PlanImpl implements Plan {
     private boolean isComplete;
     private String text;
     private TimeType timeType;
+    private int timeTodo;
 
     public PlanImpl(Plan plan) {
         this.id = plan.getId();
@@ -19,6 +20,7 @@ public class PlanImpl implements Plan {
         this.isComplete = plan.isComplete();
         this.text = plan.getText();
         this.timeType = plan.getTimeType();
+        this.timeTodo = plan.getTimeTodo();
     }
 
     @Override
@@ -52,6 +54,11 @@ public class PlanImpl implements Plan {
     }
 
     @Override
+    public int getTimeTodo() {
+        return timeTodo;
+    }
+
+    @Override
     public void setId(int id) {
         this.id = id;
     }
@@ -79,5 +86,10 @@ public class PlanImpl implements Plan {
     @Override
     public void setTimeType(TimeType timeType) {
         this.timeType = timeType;
+    }
+
+    @Override
+    public void setTimeTodo(int timeTodo) {
+        this.timeTodo = timeTodo;
     }
 }

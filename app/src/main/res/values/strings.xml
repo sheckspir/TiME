@@ -35,7 +35,12 @@
     <string name="notif_message_write_memoir">Заполните мемуары</string>
     <string name="notif_message_to_plan_day">Сплнаируйте завтрашний день</string>
 
+    <string name="plan_time_todo_hm">%1$d ч. %2$d мин.</string>
+    <string name="plan_time_todo_m">%d мин.</string>
+    <string name="plan_time_todo_zero">Just do it!</string>
     <string name="error_find_plan">Не удалось загрузить план. Попробуйте позже</string>
+    <string name="error_change_plan">Не удалось сохранить план. Попробуйте позже</string>
+    <string name="memoir_already_added">Мемуар на эту дату уже был добавлен</string>
 
 
 </resources>

@@ -23,5 +23,10 @@ class TimeMigration implements RealmMigration {
                     .addField("timeType", int.class);
             oldVersion++;
         }
+        if (oldVersion == 1) {
+            schema.get("RealmPlan")
+                    .addField("timeTodo", int.class);
+            oldVersion++;
+        }
     }
 }

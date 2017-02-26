@@ -67,10 +67,15 @@ public class MainFragment extends BaseFragment implements PlanAdapter.PlanListen
         getActivity().startActivity(intent);
     }
 
+    @Override
+    public void planChangeTimeTodo(Plan plan, int timeTodo) {
+        database.updatePlanTimeTodo(plan, timeTodo);
+    }
+
     private void checkMemoirs() {
         int memoirTextId = 0;
         Calendar calendar = new GregorianCalendar();
-        if (calendar.get(Calendar.HOUR_OF_DAY) > HOUR_FOR_SHOW_MESSAGE) {
+        if (calendar.get(Calendar.HOUR_OF_DAY) >= HOUR_FOR_SHOW_MESSAGE) {
             TimeType timeType = database.neededCreatedTypeMemoir();
             if (timeType != null) {
                 memoirTextId = R.string.memoir_message_add;

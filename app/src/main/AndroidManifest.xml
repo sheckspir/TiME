@@ -23,6 +23,12 @@
             android:name=".ui.activities.PlanActivity"
             android:label="@string/plan_edit_title"
             android:theme="@style/AppTheme"/>
+
+        <receiver android:name=".service.AlarmReceiver">
+            <intent-filter>
+                <action android:name="ru.karamyshev.time.alarms"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

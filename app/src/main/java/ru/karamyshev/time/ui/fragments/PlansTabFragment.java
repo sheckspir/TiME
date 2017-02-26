@@ -108,6 +108,7 @@ public class PlansTabFragment extends BaseFragment {
                 break;
             case MONTH:
                 timeType = TimeType.MONTH;
+                //noinspection WrongConstant
                 if (calendar.getActualMaximum(Calendar.DAY_OF_MONTH) == calendar.get(Calendar.DAY_OF_MONTH)) {
                     calendar.add(Calendar.DATE, 1);
                 }

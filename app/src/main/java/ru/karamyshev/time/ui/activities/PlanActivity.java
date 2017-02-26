@@ -113,7 +113,10 @@ public class PlanActivity extends AppCompatActivity {
                 timeType = TimeType.YEAR;
                 break;
         }
-        database.updatePlan(databasePlan, planEdit.getText().toString(), timeType, shift);
+        boolean success = database.updatePlan(databasePlan, planEdit.getText().toString(), timeType, shift);
+        if (!success) {
+            Toast.makeText(this, R.string.error_change_plan, Toast.LENGTH_LONG).show();
+        }
     }
 
     private void removePlan() {

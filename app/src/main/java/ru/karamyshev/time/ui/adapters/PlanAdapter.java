@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.util.List;
@@ -23,6 +24,8 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.PlanViewHolder
 
         void planChecked(Plan plan, boolean completed);
 
+        void planChangeTimeTodo(Plan plan, int timeTodo);
+
         void onClickPlan(Plan plan);
     }
 
@@ -34,6 +37,8 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.PlanViewHolder
         View urgentNotImportantButton;
         View notUrgentImportantButton;
         View notUrgentNotImportantButton;
+        SeekBar timeTodoSeekBar;
+        TextView timeTodoTextView;
 
         PlanViewHolder(View itemView, PlanListener planUpdateListener) {
             super(itemView);
@@ -44,6 +49,8 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.PlanViewHolder
             notUrgentImportantButton = itemView.findViewById(R.id.not_urgent_important_layout);
             urgentNotImportantButton = itemView.findViewById(R.id.urgent_not_important_layout);
             notUrgentNotImportantButton = itemView.findViewById(R.id.not_urgent_not_important_layout);
+            timeTodoSeekBar = (SeekBar) itemView.findViewById(R.id.todo_time_seekbar);
+            timeTodoTextView = (TextView) itemView.findViewById(R.id.todo_time_text);
         }
 
         void bind(final Plan plan) {
@@ -86,6 +93,40 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.PlanViewHolder
                     updatePlanType(plan, EisenhowerType.NOT_URGENT_NOT_IMPORTANT);
                 }
             });
+
+            updateTimeTodoText(plan.getTimeTodo());
+            timeTodoSeekBar.setProgress(plan.getTimeTodo());
+            timeTodoSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    updateTimeTodoText(progress/Plan.PERIOD_TIME_TODO * Plan.PERIOD_TIME_TODO);
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                    //nope
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                    int newProgress = seekBar.getProgress()/Plan.PERIOD_TIME_TODO * Plan.PERIOD_TIME_TODO;
+                    updateTimeTodoText(newProgress);
+                    seekBar.setProgress(newProgress);
+                    planUpdateListener.planChangeTimeTodo(plan, newProgress);
+                }
+            });
+        }
+
+        private void updateTimeTodoText(int newProgress) {
+            if (newProgress > 0) {
+                if (newProgress / 60 > 0) {
+                    timeTodoTextView.setText(timeTodoTextView.getContext().getString(R.string.plan_time_todo_hm, newProgress/60, newProgress%60));
+                } else {
+                    timeTodoTextView.setText(timeTodoTextView.getContext().getString(R.string.plan_time_todo_m, newProgress));
+                }
+            } else {
+                timeTodoTextView.setText(R.string.plan_time_todo_zero);
+            }
         }
 
         private void updatePlanType(Plan plan, EisenhowerType newType) {

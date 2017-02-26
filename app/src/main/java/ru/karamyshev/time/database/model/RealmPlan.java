@@ -20,6 +20,7 @@ public class RealmPlan implements RealmModel, Plan {
     private boolean isComplete;
     private String text;
     private int timeType;
+    private int timeTodo;
 
     public RealmPlan() {
     }
@@ -68,6 +69,11 @@ public class RealmPlan implements RealmModel, Plan {
     }
 
     @Override
+    public int getTimeTodo() {
+        return timeTodo;
+    }
+
+    @Override
     public void setStartDate(Date startDate) {
         this.startDate = startDate;
     }
@@ -90,5 +96,10 @@ public class RealmPlan implements RealmModel, Plan {
     @Override
     public void setTimeType(TimeType timeType) {
         this.timeType = timeType.getId();
+    }
+
+    @Override
+    public void setTimeTodo(int timeTodo) {
+        this.timeTodo = timeTodo;
     }
 }

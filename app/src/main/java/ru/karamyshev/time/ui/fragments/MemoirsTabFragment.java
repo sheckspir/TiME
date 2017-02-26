@@ -3,6 +3,7 @@ package ru.karamyshev.time.ui.fragments;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
@@ -14,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
+import android.widget.Toast;
 
 import ru.karamyshev.time.R;
 import ru.karamyshev.time.model.TimeType;
@@ -103,11 +105,14 @@ public class MemoirsTabFragment extends BaseFragment {
                         String memoirText = memoirEdit.getText().toString();
                         if (!TextUtils.isEmpty(memoirText.trim())) {
                             boolean previousPeriod = !memoirTodaySwitch.isChecked();
-                            database.newMemoir(memoirText, timeType, previousPeriod);
-                        }
-                        Fragment fragment = pagerAdapter.getItem(selected);
-                        if (fragment instanceof MemoirsFragment) {
-                            ((MemoirsFragment) fragment).updateMemoirs();
+                            boolean success = database.newMemoir(memoirText, timeType, previousPeriod);
+                            if (!success) {
+                                if (getView() != null) {
+                                    Snackbar.make(getView(), getString(R.string.memoir_already_added), Snackbar.LENGTH_SHORT).show();
+                                } else if (getActivity() != null){
+                                    Toast.makeText(getActivity(), R.string.memoir_already_added, Toast.LENGTH_SHORT).show();
+                                }
+                            }
                         }
                     }
                 })

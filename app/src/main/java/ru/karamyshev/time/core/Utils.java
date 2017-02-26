@@ -18,6 +18,7 @@ public class Utils {
                 break;
             case WEEK:
                 calendar.setFirstDayOfWeek(Calendar.MONDAY);
+                calendar.get(Calendar.DATE);
                 calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
                 calendar.add(Calendar.DATE, 1);
                 calendar.add(Calendar.MILLISECOND, -1);
@@ -48,6 +49,7 @@ public class Utils {
                 break;
             case WEEK:
                 calendar.setFirstDayOfWeek(Calendar.MONDAY);
+                calendar.get(Calendar.DATE);
                 calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
                 calendar.add(Calendar.WEEK_OF_YEAR, shiftPeriod);
                 break;

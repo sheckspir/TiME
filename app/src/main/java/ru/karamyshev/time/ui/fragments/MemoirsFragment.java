@@ -8,17 +8,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.List;
-
-import io.realm.RealmResults;
 import ru.karamyshev.time.R;
 import ru.karamyshev.time.database.DatabaseResults;
 import ru.karamyshev.time.database.model.RealmMemoir;
-import ru.karamyshev.time.model.Memoir;
 import ru.karamyshev.time.model.TimeType;
 import ru.karamyshev.time.ui.adapters.MemoirAdapter;
 
-public class MemoirsFragment extends BaseFragment {
+public class MemoirsFragment extends BaseFragment implements DatabaseResults.OnChangeListener {
     private static final String ARG_MEMOIR_TYPE = "time_type";
 
     public static MemoirsFragment newInstance(TimeType timeType) {
@@ -31,6 +27,7 @@ public class MemoirsFragment extends BaseFragment {
 
     private TimeType timeType = TimeType.DAY;
     private MemoirAdapter memoirAdapter;
+    private DatabaseResults<RealmMemoir> memoirs;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -48,19 +45,24 @@ public class MemoirsFragment extends BaseFragment {
         memoirsRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
         memoirAdapter = new MemoirAdapter();
         memoirsRecycler.setAdapter(memoirAdapter);
-
-        updateMemoirs();
+        memoirs = database.getMemoirs(timeType);
+        memoirs.setOnChangeListener(this);
+        memoirAdapter.setMemoirList(memoirs);
+        memoirAdapter.notifyDataSetChanged();
         return view;
     }
 
-    public void updateMemoirs() {
-        DatabaseResults<RealmMemoir> memoirs = database.getMemoirs(timeType);
-        updateAdapter(memoirs);
+    @Override
+    public void onDestroyView() {
+        if (memoirs != null) {
+            memoirs.close();
+        }
+        super.onDestroyView();
     }
 
-    private void updateAdapter(List<? extends Memoir> memoirs) {
+    @Override
+    public void onChange() {
         if (memoirAdapter != null) {
-            memoirAdapter.setMemoirList(memoirs);
             memoirAdapter.notifyDataSetChanged();
         }
     }

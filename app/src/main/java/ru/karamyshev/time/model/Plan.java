@@ -4,9 +4,9 @@ package ru.karamyshev.time.model;
 import java.util.Date;
 
 public interface Plan {
-    int getId();
+    public static final int PERIOD_TIME_TODO = 15;
 
-    void setId(int id);
+    int getId();
 
     Date getStartDate();
 
@@ -16,7 +16,11 @@ public interface Plan {
 
     String getText();
 
+    int getTimeTodo();
+
     TimeType getTimeType();
+
+    void setId(int id);
 
     void setStartDate(Date startDate);
 
@@ -27,4 +31,6 @@ public interface Plan {
     void setComplete(boolean complete);
 
     void setEisenhowerType(EisenhowerType eisenhowerType);
+
+    void setTimeTodo(int timeTodo);
 }

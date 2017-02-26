@@ -90,15 +90,20 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setEveryDayAlarm() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.HOUR_OF_DAY, 21);
+        Intent alarmIntent = new Intent(this.getApplicationContext(), AlarmReceiver.class);
+        boolean alarmUp = (PendingIntent.getBroadcast(this, 0, alarmIntent, PendingIntent.FLAG_NO_CREATE) != null);
+        if (!alarmUp) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(System.currentTimeMillis());
+            calendar.set(Calendar.HOUR_OF_DAY, 21);
+            calendar.add(Calendar.DATE, 1);
 
-        PendingIntent alarmIntent;
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this.getApplicationContext(), AlarmReceiver.class);
-        alarmIntent = PendingIntent.getBroadcast(this.getApplicationContext(), 0, intent, 0);
-        alarmManager.setInexactRepeating(AlarmManager.RTC, calendar.getTimeInMillis(),
-                AlarmManager.INTERVAL_DAY, alarmIntent);
+            PendingIntent pendingAlarmIntent;
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+            pendingAlarmIntent = PendingIntent.getBroadcast(this.getApplicationContext(), 0, alarmIntent, 0);
+            alarmManager.setInexactRepeating(AlarmManager.RTC, calendar.getTimeInMillis(),
+                    AlarmManager.INTERVAL_DAY, pendingAlarmIntent);
+        }
     }
 }
